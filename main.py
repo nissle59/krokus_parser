@@ -27,13 +27,17 @@ class Krokus:
             self.connection.execute("""
                 create table items
                 (
-                    id            INTEGER not null,
-                    sku           TEXT    not null,
-                    category_id   TEXT,
-                    category_name TEXT,
-                    brand_id      INTEGER,
-                    brand_name    TEXT,
-                    type          TEXT
+                    id             INTEGER not null,
+                    sku_base       TEXT    not null,
+                    category_id    TEXT,
+                    category_name  TEXT,
+                    brand_id       INTEGER,
+                    brand_name     TEXT,
+                    type           TEXT,
+                    count          TEXT,
+                    retail_price   TEXT,
+                    purchase_price TEXT,
+                    sku            TEXT
                 );
             """)
             self.connection.execute("""
@@ -124,14 +128,14 @@ class Krokus:
                     i['type'])
                 self.cursor.execute(
                     f"""INSERT OR REPLACE INTO items 
-                    (id,sku,category_id,category_name,brand_id,brand_name,type) 
+                    (id,sku_base,category_id,category_name,brand_id,brand_name,type) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """, t)
             except Exception as e:
                 print(e)
         self.connection.commit()
         self.cursor.execute('SELECT COUNT(*) FROM items')
-        count = int(self.cursor.fetchall()[0])
+        count = int(self.cursor.fetchall()[0][0])
 
         print(f'{count} (SQL) of {len(lst)} (LIST) records processed')
 
@@ -191,10 +195,10 @@ class Krokus:
 
         print(f'DONE! {count} of {len(ids)} records processed')
 
-    def get_json_by_ids(self, ids: list):
+    def load_stocks_by_ids(self, ids: list):
         out = []
         for id in ids:
-            out.append({"id": id, "amount": 0})
+            out.append({"id": str(id), "amount": 0})
 
         payload = {
             "goods": out
@@ -203,6 +207,7 @@ class Krokus:
         r = requests.post(f"{self.base_url}/stockOfGoods", headers=self.headers, json=payload)
         try:
             js_buf = r.json()['stockOfGoods']
+            print(len(js_buf))
         except:
             print(r.content)
             return None
@@ -211,17 +216,32 @@ class Krokus:
             print(r.json()['message'])
             return None
         for item in js_buf:
+            q = 'UPDATE items SET sku = ?, purchase_price = ?,retail_price = ?, count = ? WHERE id = ?'
+            self.cursor.execute(q,(item['articul'],item['price'],item['priceBasic'],item['stockamount'] + item['stockamountAdd'],int(item['id'])))
             out.append({
+                'id':item['id'],
                 'articul': item['articul'],
                 'price': item['price'],
                 'priceBasic': item['priceBasic'],
                 'stockamountTotal': item['stockamount'] + item['stockamountAdd']
             })
+        self.connection.commit()
         try:
             print(json.dumps(out, ensure_ascii=False, indent=4))
             return out
         except:
             return None
+
+    def load_stocks(self, fname = 'brands_to_parse'):
+        with open(fname, 'r') as f:
+            brands = f.read().split('\n')
+        placeholder = '?'
+        placeholders = ', '.join(placeholder for unused in brands)
+        query = 'SELECT id FROM items WHERE brand_name IN (%s)' % placeholders
+        self.cursor.execute(query, brands)
+        lst = [item[0] for item in self.cursor.fetchall()]
+        #print(lst)
+        self.load_stocks_by_ids(lst)
 
     def compare_ids(self):
         self.cursor.execute('SELECT id FROM items')
@@ -268,3 +288,5 @@ class Krokus:
 if __name__ == "__main__":
     krokus = Krokus()
     krokus.update_db()
+    krokus.load_stocks()
+    del krokus
