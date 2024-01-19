@@ -245,7 +245,7 @@ class Krokus:
         except:
             return None
 
-    def load_stocks(self, fname = 'brands_to_parse'):
+    def load_stocks(self, fname = get_script_dir()+'brands_to_parse'):
         with open(fname, 'r') as f:
             brands = f.read().split('\n')
         placeholder = '?'
