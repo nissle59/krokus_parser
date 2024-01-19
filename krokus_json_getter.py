@@ -1,5 +1,8 @@
 import sqlite3
 import json
+import inspect
+import os
+import sys
 
 def get_script_dir(follow_symlinks=True):
     if getattr(sys, 'frozen', False): # py2exe, PyInstaller, cx_Freeze
