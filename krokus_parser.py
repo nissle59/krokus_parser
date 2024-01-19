@@ -208,41 +208,49 @@ class Krokus:
 
         print(f'DONE! {count} of {len(ids)} records processed')
 
-    def load_stocks_by_ids(self, ids: list):
+    def load_stocks_by_ids(self, ids: list, step=1000):
+        current = 0
         out = []
-        for id in ids:
-            out.append({"id": str(id), "amount": 0})
+        for i in ids:
+            out.append(ids)
+            current += 1
+            if (current == step) or (i == ids[-1]):
+                #out = []
+                for id in ids:
+                    out.append({"id": str(id), "amount": 0})
 
-        payload = {
-            "goods": out
-        }
+                payload = {
+                    "goods": out
+                }
 
-        r = requests.post(f"{self.base_url}/stockOfGoods", headers=self.headers, json=payload)
+                r = requests.post(f"{self.base_url}/stockOfGoods", headers=self.headers, json=payload)
+                try:
+                    js_buf = r.json()['stockOfGoods']
+                    print(len(js_buf))
+                except:
+                    print(r.content)
+                    return None
+                out = []
+                if js_buf is None:
+                    print(r.json()['message'])
+                    return None
+                for item in js_buf:
+                    q = 'UPDATE items SET sku = ?, purchase_price = ?,retail_price = ?, count = ? WHERE id = ?'
+                    self.cursor.execute(q,(item['articul'],item['price'],item['priceBasic'],item['stockamount'] + item['stockamountAdd'],int(item['id'])))
+                    out.append({
+                        'id':item['id'],
+                        'articul': item['articul'],
+                        'price': item['price'],
+                        'priceBasic': item['priceBasic'],
+                        'stockamountTotal': item['stockamount'] + item['stockamountAdd']
+                    })
+                self.connection.commit()
+                current = 0
         try:
-            js_buf = r.json()['stockOfGoods']
-            print(len(js_buf))
-        except:
-            print(r.content)
-            return None
-        out = []
-        if js_buf is None:
-            print(r.json()['message'])
-            return None
-        for item in js_buf:
-            q = 'UPDATE items SET sku = ?, purchase_price = ?,retail_price = ?, count = ? WHERE id = ?'
-            self.cursor.execute(q,(item['articul'],item['price'],item['priceBasic'],item['stockamount'] + item['stockamountAdd'],int(item['id'])))
-            out.append({
-                'id':item['id'],
-                'articul': item['articul'],
-                'price': item['price'],
-                'priceBasic': item['priceBasic'],
-                'stockamountTotal': item['stockamount'] + item['stockamountAdd']
-            })
-        self.connection.commit()
-        try:
-            print(json.dumps(out, ensure_ascii=False, indent=4))
-            return out
-        except:
+            #print(json.dumps(out, ensure_ascii=False, indent=4))
+            return 1
+        except Exception as e:
+            print(e)
             return None
 
     def load_stocks(self, fname = get_script_dir()+'brands_to_parse'):
