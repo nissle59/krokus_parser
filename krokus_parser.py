@@ -3,10 +3,23 @@ import requests
 import base64
 import sqlite3
 import re
+import inspect
+import os
+import sys
+
+
+def get_script_dir(follow_symlinks=True):
+    if getattr(sys, 'frozen', False): # py2exe, PyInstaller, cx_Freeze
+        path = os.path.abspath(sys.executable)
+    else:
+        path = inspect.getabsfile(get_script_dir)
+    if follow_symlinks:
+        path = os.path.realpath(path)
+    return os.path.dirname(path) + '/'
 
 
 class Krokus:
-    connection = sqlite3.connect('base.db')
+    connection = sqlite3.connect(get_script_dir()+'base.db')
     cursor = connection.cursor()
 
     base_url = 'http://swop.krokus.ru/ExchangeBase/hs/catalog'
@@ -286,7 +299,8 @@ class Krokus:
 
 
 if __name__ == "__main__":
-    krokus = Krokus()
-    krokus.update_db()
-    krokus.load_stocks()
-    del krokus
+    print(get_script_dir())
+    # krokus = Krokus()
+    # krokus.update_db()
+    # krokus.load_stocks()
+    # del krokus

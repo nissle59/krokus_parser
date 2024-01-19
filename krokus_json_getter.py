@@ -1,5 +1,6 @@
 import sqlite3
 import json
+from krokus_parser import get_script_dir
 
 
 def dict_factory(cursor, row):
@@ -9,12 +10,13 @@ def dict_factory(cursor, row):
     return d
 
 
-def get_json(dbfile = 'base.db'):
+def get_json(dbfile = get_script_dir()+'base.db'):
+    print(dbfile)
     connection = sqlite3.connect(dbfile)
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
-    placeholder = '?'
-    placeholders = ', '.join(placeholder for unused in l)
+    # placeholder = '?'
+    # placeholders = ', '.join(placeholder for unused in l)
     query = "SELECT sku,purchase_price,retail_price,count FROM items WHERE sku IS NOT NULL"
     cursor.execute(query)
     result = [dict(row) for row in cursor.fetchall()]
@@ -23,5 +25,5 @@ def get_json(dbfile = 'base.db'):
 
 
 if __name__ == "__main__":
-    js = get_json('br_test')
+    js = get_json()
     print(json.dumps(js,ensure_ascii=False,indent=4))
