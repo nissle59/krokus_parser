@@ -300,7 +300,7 @@ class Krokus:
 
 if __name__ == "__main__":
     print(get_script_dir())
-    # krokus = Krokus()
-    # krokus.update_db()
-    # krokus.load_stocks()
-    # del krokus
+    krokus = Krokus()
+    krokus.update_db()
+    krokus.load_stocks()
+    del krokus
