@@ -63,7 +63,7 @@ class Krokus:
 
     def get_all_ids(self, start_page=1, step=1, pageSize=10000):
         page = start_page
-        with open('ids.txt', 'w') as f:
+        with open('ids.txt', 'w', encoding='utf-8') as f:
             f.write('')
         while True:
             ids = []
@@ -75,12 +75,12 @@ class Krokus:
                     for item in res:
                         ids.append(item['id'])
                     print(f'{url} done.')
-                    with open('ids.txt', 'a') as f:
+                    with open('ids.txt', 'a', encoding='utf-8') as f:
                         f.write('\n'.join(ids))
                     page = page + step
                 else:
                     print(f'Total ids: {len(ids)}')
-                    with open('ids.txt', 'a') as f:
+                    with open('ids.txt', 'a', encoding='utf-8') as f:
                         f.write('\n'.join(ids))
                     return ids
                     # return 0
@@ -89,11 +89,11 @@ class Krokus:
                 break
 
     def filter_ids(self):
-        with open('ids.txt', 'r') as f:
+        with open('ids.txt', 'r', encoding='utf-8') as f:
             ids = f.read().split('\n')
             filtered_ids = list(set(ids))
             print(f'Input: {len(ids)}, Output: {len(filtered_ids)}')
-        with open('ids.txt', 'w') as f:
+        with open('ids.txt', 'w', encoding='utf-8') as f:
             f.write("\n".join(filtered_ids))
         print('Filtering done.')
 
@@ -153,7 +153,7 @@ class Krokus:
         print(f'{count} (SQL) of {len(lst)} (LIST) records processed')
 
     def load_ids_from_file(self, fname='ids.txt'):
-        with open(fname, 'r') as f:
+        with open(fname, 'r', encoding='utf-8') as f:
             ids = f.read().split('\n')
         print(f'IDs before de-duplicate: {len(ids)}')
         ids = list(set(ids))
@@ -246,7 +246,7 @@ class Krokus:
             return None
 
     def load_stocks(self, fname = get_script_dir()+'brands_to_parse'):
-        with open(fname, 'r') as f:
+        with open(fname, 'r', encoding='utf-8') as f:
             brands = f.read().split('\n')
         placeholder = '?'
         placeholders = ', '.join(placeholder for unused in brands)
@@ -262,7 +262,7 @@ class Krokus:
         comp_ids = []
         count = 0
         # print(sql_ids[0:20])
-        with open('ids.txt', 'r') as f:
+        with open('ids.txt', 'r', encoding='utf-8') as f:
             ids = f.read().split('\n')
         total = len(ids)
         for id in ids:
@@ -274,7 +274,7 @@ class Krokus:
                 print(s)
 
         if len(comp_ids) > 0:
-            with open('compids.txt', 'w') as f:
+            with open('compids.txt', 'w', encoding='utf-8') as f:
                 f.write('\n'.join(comp_ids))
         print(f'DONE! Total failed: {len(comp_ids)}')
 
@@ -289,7 +289,7 @@ class Krokus:
             count = self.cursor.fetchall()[0][0]
             brands_final.append(f'{brand} | {count}')
             print(f'{brand} | {count}')
-        with open('brands.txt', 'w') as f:
+        with open('brands.txt', 'w', encoding='utf-8') as f:
             f.write('\n'.join(brands_final))
         print(f'Total {total} brands')
 
