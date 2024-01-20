@@ -3,6 +3,27 @@ import json
 import inspect
 import os
 import sys
+import logging
+from logging.handlers import RotatingFileHandler
+import warnings
+
+warnings.filterwarnings("ignore")
+
+log_file = 'getter.log'
+
+logging.basicConfig(level=logging.INFO, filename=log_file, filemode="a",
+                    format="%(asctime)s %(levelname)s %(message)s")
+# logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+args = sys.argv[1:]
+
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = RotatingFileHandler(log_file, maxBytes=2000000, backupCount=5)
+logger.addHandler(handler)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
 
 def get_script_dir(follow_symlinks=True):
     if getattr(sys, 'frozen', False): # py2exe, PyInstaller, cx_Freeze
@@ -32,6 +53,7 @@ def get_json(dbfile = get_script_dir()+'base.db'):
     cursor.execute(query)
     result = [dict(row) for row in cursor.fetchall()]
     connection.close()
+    logger.info(f'{len(result)} requested from DB')
     return result
 
 
