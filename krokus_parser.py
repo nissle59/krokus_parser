@@ -46,8 +46,8 @@ class Krokus:
     cursor = connection.cursor()
 
     base_url = 'http://swop.krokus.ru/ExchangeBase/hs/catalog'
-    user = 'МежунцРузанЕремовнаИП401104760841'
-    passwd = 'Ly5!Tuqife'
+    user = 'user'
+    passwd = 'password'
 
     def __init__(self):
         self.init_db()
